@@ -9,6 +9,7 @@ import 'package:twitter_clone/models/tweet_model.dart';
 
 import '../../../apis/storage_api.dart';
 import '../../../core/enums/tweet_type_enum.dart';
+import '../../../models/user_model.dart';
 
 final tweetControllerProvider = StateNotifierProvider<TweetController, bool>(
   (ref) => TweetController(
@@ -21,6 +22,11 @@ final tweetControllerProvider = StateNotifierProvider<TweetController, bool>(
 final tweetListProvider = FutureProvider<List<Tweet>>((ref) {
   final tweetController = ref.watch(tweetControllerProvider.notifier);
   return tweetController.getTweets();
+});
+
+final getLatestTweetProvider = StreamProvider((ref) {
+  final tweetApi = ref.watch(tweetAPIProvider);
+  return tweetApi.getLatestTweet();
 });
 
 class TweetController extends StateNotifier<bool> {
@@ -41,6 +47,22 @@ class TweetController extends StateNotifier<bool> {
     return tweetList.map((tweet) => Tweet.fromMap(tweet.data)).toList();
   }
 
+  void likeTweet({
+    required Tweet tweet,
+    required UserModel user,
+  }) async {
+    List<String> likes = tweet.likes;
+    if (tweet.likes.contains(user.uid)) {
+      likes.remove(user.uid);
+    } else {
+      likes.add(user.uid);
+    }
+
+    tweet = tweet.copyWith(likes: likes);
+    final res = await _tweetAPI.likeTweet(tweet);
+    res.fold((l) => null, (r) => null);
+  }
+
   void shareTweet({
     required List<File> images,
     required String text,
@@ -48,6 +70,7 @@ class TweetController extends StateNotifier<bool> {
   }) {
     if (text.isEmpty) {
       showSnackBar(context, 'Please enter some text');
+      return;
     }
 
     if (images.isNotEmpty) {

@@ -9,18 +9,25 @@ import 'package:twitter_clone/core/providers.dart';
 import '../models/tweet_model.dart';
 
 final tweetAPIProvider = Provider((ref) {
-  final db = ref.watch(appwriteDatabaseProvider);
-  return TweetAPI(db: db);
+  return TweetAPI(
+    db: ref.watch(appwriteDatabaseProvider),
+    realtime: ref.watch(appwriteRealtimeProvider),
+  );
 });
 
 abstract class ITweetAPI {
   FutureEither<Document> shareTweet(Tweet tweet);
   Future<List<Document>> getTweets();
+  Stream<RealtimeMessage> getLatestTweet();
+  FutureEither<Document> likeTweet(Tweet tweet);
 }
 
 class TweetAPI implements ITweetAPI {
   final Databases _db;
-  TweetAPI({required Databases db}) : _db = db;
+  final Realtime _realtime;
+  TweetAPI({required Databases db, required Realtime realtime})
+      : _db = db,
+        _realtime = realtime;
 
   @override
   FutureEither<Document> shareTweet(Tweet tweet) async {
@@ -49,8 +56,43 @@ class TweetAPI implements ITweetAPI {
   @override
   Future<List<Document>> getTweets() async {
     final documents = await _db.listDocuments(
-        databaseId: AppwriteConstants.databaseId,
-        collectionId: AppwriteConstants.tweetCollectionId);
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.tweetCollectionId,
+      queries: [
+        Query.orderDesc('tweetedAt'),
+      ],
+    );
     return documents.documents;
+  }
+
+  @override
+  Stream<RealtimeMessage> getLatestTweet() {
+    return _realtime.subscribe([
+      'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.tweetCollectionId}.documents',
+    ]).stream;
+  }
+
+  @override
+  FutureEither<Document> likeTweet(Tweet tweet) async {
+    try {
+      final document = await _db.updateDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.tweetCollectionId,
+        documentId: tweet.id,
+        data: {
+          'likes': tweet.likes,
+        },
+      );
+      return right(document);
+    } on AppwriteException catch (e, st) {
+      return left(
+        Failure(
+          e.message ?? 'Unexpected error occured',
+          st,
+        ),
+      );
+    } catch (e, st) {
+      return left(Failure(e.toString(), st));
+    }
   }
 }
