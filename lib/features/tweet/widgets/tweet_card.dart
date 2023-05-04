@@ -47,7 +47,27 @@ class TweetCard extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              //retweet
+                              if (tweet.retweetedBy.isNotEmpty)
+                                Row(
+                                  children: [
+                                    SvgPicture.asset(
+                                      AssetsConstants.retweetIcon,
+                                      colorFilter: const ColorFilter.mode(
+                                        Pallette.greyColor,
+                                        BlendMode.srcIn,
+                                      ),
+                                      height: 20,
+                                    ),
+                                    const SizedBox(width: 2.0),
+                                    Text(
+                                      '${tweet.retweetedBy} retweeted',
+                                      style: const TextStyle(
+                                          color: Pallette.greyColor,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.w500),
+                                    ),
+                                  ],
+                                ),
                               Row(
                                 children: [
                                   Container(
@@ -111,7 +131,16 @@ class TweetCard extends ConsumerWidget {
                                     TweetIconButton(
                                       pathName: AssetsConstants.retweetIcon,
                                       text: tweet.resharedCount.toString(),
-                                      onTap: () {},
+                                      onTap: () {
+                                        ref
+                                            .read(tweetControllerProvider
+                                                .notifier)
+                                            .reshareTweet(
+                                              tweet: tweet,
+                                              currentUser: currentUser,
+                                              context: context,
+                                            );
+                                      },
                                     ),
                                     LikeButton(
                                       size: 25,
