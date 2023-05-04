@@ -15,6 +15,7 @@ final userAPIProvider = Provider((ref) {
 abstract class IUserAPI {
   FutureEitherVoid saveUserData(UserModel userModel);
   Future<model.Document> getUserData(String userId);
+  Future<List<model.Document>> searchUserByName(String name);
 }
 
 class UserAPI implements IUserAPI {
@@ -48,5 +49,18 @@ class UserAPI implements IUserAPI {
       collectionId: AppwriteConstants.userCollectionId,
       documentId: userId,
     );
+  }
+
+  @override
+  Future<List<model.Document>> searchUserByName(String name) async {
+    final documents = await _db.listDocuments(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.userCollectionId,
+      queries: [
+        Query.search('name', name),
+      ],
+    );
+
+    return documents.documents;
   }
 }
