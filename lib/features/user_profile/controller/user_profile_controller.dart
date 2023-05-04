@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:twitter_clone/apis/storage_api.dart';
+import 'package:twitter_clone/features/notifications/controller/notification_controller.dart';
 import 'package:twitter_clone/models/user_model.dart';
 
 import '../../../apis/tweet_api.dart';
 import '../../../apis/user_api.dart';
+import '../../../core/enums/notification_type_enum.dart';
 import '../../../core/utils.dart';
 import '../../../models/tweet_model.dart';
 
@@ -16,6 +18,7 @@ final userProfileControllerProvider =
     tweetAPI: ref.watch(tweetAPIProvider),
     storageAPI: ref.watch(storageApiProvider),
     userAPI: ref.watch(userAPIProvider),
+    notificationController: ref.watch(notificationControllerProvider.notifier),
   );
 });
 
@@ -33,11 +36,16 @@ class UserProfileController extends StateNotifier<bool> {
   final TweetAPI _tweetAPI;
   final StorageAPI _storageAPI;
   final UserAPI _userAPI;
+  final NotificationController _notificationController;
   UserProfileController(
-      {required tweetAPI, required storageAPI, required userAPI})
+      {required tweetAPI,
+      required storageAPI,
+      required userAPI,
+      required notificationController})
       : _tweetAPI = tweetAPI,
         _storageAPI = storageAPI,
         _userAPI = userAPI,
+        _notificationController = notificationController,
         super(false);
 
   Future<List<Tweet>> getUserTweets(String userId) async {
@@ -94,7 +102,14 @@ class UserProfileController extends StateNotifier<bool> {
         final res2 = await _userAPI.addToFollowing(currentUser);
         res2.fold(
           (l) => showSnackBar(context, l.message),
-          (r) => null,
+          (r) {
+            _notificationController.createNotification(
+              text: '${currentUser.name} followed you',
+              postId: '',
+              notificationType: NotificationType.follow,
+              userId: userToFollow.uid,
+            );
+          },
         );
       },
     );

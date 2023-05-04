@@ -11,7 +11,7 @@ final userAPIProvider = Provider((ref) {
   final db = ref.watch(appwriteDatabaseProvider);
   return UserAPI(
     db: db,
-    realtime: ref.watch(appwriteRealtimeUserProvider),
+    realtime: ref.watch(appwriteRealtimeProvider),
   );
 });
 

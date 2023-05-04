@@ -103,6 +103,7 @@ class ReplyView extends ConsumerWidget {
               text: value,
               context: context,
               repliedTo: tweet.id,
+              repliedToUserId: tweet.userId,
             );
           },
           decoration: InputDecoration(

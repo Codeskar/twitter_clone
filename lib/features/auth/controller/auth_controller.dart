@@ -22,7 +22,7 @@ final currentUserProvider = FutureProvider((ref) {
 });
 
 final currentUserDetailsProvider = FutureProvider((ref) {
-  final currentUserId = ref.watch(currentUserProvider).value!.$id;
+  final currentUserId = ref.watch(currentUserProvider).value?.$id ?? '';
   final userDetails = ref.watch(userDetailsProvider(currentUserId));
   return userDetails.value;
 });

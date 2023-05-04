@@ -25,12 +25,12 @@ final appwriteStorageProvider = Provider((ref) {
   return Storage(client);
 });
 
-final appwriteRealtimeTweetProvider = Provider((ref) {
+final appwriteRealtimeProvider = Provider((ref) {
   final client = ref.watch(appwriteClientProvider);
   return Realtime(client);
 });
 
-final appwriteRealtimeUserProvider = Provider((ref) {
+final appwriteRealtimeTweetProvider = Provider((ref) {
   final client = ref.watch(appwriteClientProvider);
   return Realtime(client);
 });
