@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:twitter_clone/constants/constants.dart';
+import 'package:twitter_clone/features/home/widgets/side_drawer.dart';
 import 'package:twitter_clone/features/tweet/views/create_tweet_view.dart';
 import 'package:twitter_clone/theme/pallette.dart';
 
@@ -42,6 +43,7 @@ class _HomeViewState extends State<HomeView> {
           size: 28,
         ),
       ),
+      drawer: const SideDrawer(),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _page,
         onTap: onPageChanged,

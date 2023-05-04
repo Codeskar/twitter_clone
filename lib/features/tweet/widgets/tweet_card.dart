@@ -88,7 +88,10 @@ class TweetCard extends ConsumerWidget {
                                 Row(
                                   children: [
                                     Container(
-                                      margin: const EdgeInsets.only(right: 5.0),
+                                      margin: EdgeInsets.only(
+                                        right:
+                                            tweetAuthor.isTwitterBlue ? 1 : 5,
+                                      ),
                                       child: Text(
                                         tweetAuthor.name,
                                         style: const TextStyle(
@@ -97,6 +100,14 @@ class TweetCard extends ConsumerWidget {
                                         ),
                                       ),
                                     ),
+                                    if (tweetAuthor.isTwitterBlue)
+                                      Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 5),
+                                        child: SvgPicture.asset(
+                                          AssetsConstants.verifiedIcon,
+                                        ),
+                                      ),
                                     Text(
                                       '@${tweetAuthor.name} • ${timeago.format(
                                         tweet.tweetedAt,
