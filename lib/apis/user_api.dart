@@ -9,18 +9,26 @@ import 'package:twitter_clone/models/user_model.dart';
 
 final userAPIProvider = Provider((ref) {
   final db = ref.watch(appwriteDatabaseProvider);
-  return UserAPI(db: db);
+  return UserAPI(
+    db: db,
+    realtime: ref.watch(appwriteRealtimeUserProvider),
+  );
 });
 
 abstract class IUserAPI {
   FutureEitherVoid saveUserData(UserModel userModel);
   Future<model.Document> getUserData(String userId);
   Future<List<model.Document>> searchUserByName(String name);
+  FutureEitherVoid updateUser(UserModel userModel);
+  Stream<RealtimeMessage> getLatesUserProfile();
 }
 
 class UserAPI implements IUserAPI {
   final Databases _db;
-  UserAPI({required Databases db}) : _db = db;
+  final Realtime _realtime;
+  UserAPI({required Databases db, required Realtime realtime})
+      : _db = db,
+        _realtime = realtime;
   @override
   FutureEitherVoid saveUserData(UserModel userModel) async {
     try {
@@ -62,5 +70,33 @@ class UserAPI implements IUserAPI {
     );
 
     return documents.documents;
+  }
+
+  @override
+  FutureEitherVoid updateUser(UserModel userModel) async {
+    try {
+      _db.updateDocument(
+        databaseId: AppwriteConstants.databaseId,
+        collectionId: AppwriteConstants.userCollectionId,
+        documentId: userModel.uid,
+        data: userModel.toMap(),
+      );
+      return right(null);
+    } on AppwriteException catch (e, st) {
+      return left(
+        Failure(e.message ?? 'Unexpected error occured', st),
+      );
+    } catch (e, st) {
+      return left(
+        Failure(e.toString(), st),
+      );
+    }
+  }
+
+  @override
+  Stream<RealtimeMessage> getLatesUserProfile() {
+    return _realtime.subscribe([
+      'databases.${AppwriteConstants.databaseId}.collections.${AppwriteConstants.userCollectionId}.documents',
+    ]).stream;
   }
 }

@@ -11,7 +11,7 @@ import '../models/tweet_model.dart';
 final tweetAPIProvider = Provider((ref) {
   return TweetAPI(
     db: ref.watch(appwriteDatabaseProvider),
-    realtime: ref.watch(appwriteRealtimeProvider),
+    realtime: ref.watch(appwriteRealtimeTweetProvider),
   );
 });
 
@@ -23,6 +23,7 @@ abstract class ITweetAPI {
   FutureEither<Document> updateReshareCount(Tweet tweet);
   Future<List<Document>> getRepliesToTweet(Tweet tweet);
   Future<Document> getTweetById(String tweetId);
+  Future<List<Document>> getUserTweets(String userId);
 }
 
 class TweetAPI implements ITweetAPI {
@@ -142,5 +143,17 @@ class TweetAPI implements ITweetAPI {
       collectionId: AppwriteConstants.tweetCollectionId,
       documentId: tweetId,
     );
+  }
+
+  @override
+  Future<List<Document>> getUserTweets(String userId) async {
+    final document = await _db.listDocuments(
+      databaseId: AppwriteConstants.databaseId,
+      collectionId: AppwriteConstants.tweetCollectionId,
+      queries: [
+        Query.equal('userId', userId),
+      ],
+    );
+    return document.documents;
   }
 }
