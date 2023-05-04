@@ -60,7 +60,7 @@ class UserProfileController extends StateNotifier<bool> {
     if (profileImageFile != null) {
       final profileImageUrl =
           await _storageAPI.uploadImages(files: [profileImageFile]);
-      userModel = userModel.copyWith(bannerPic: profileImageUrl.first);
+      userModel = userModel.copyWith(profilePic: profileImageUrl.first);
     }
 
     final res = await _userAPI.updateUser(userModel);
@@ -68,6 +68,35 @@ class UserProfileController extends StateNotifier<bool> {
     res.fold(
       (l) => showSnackBar(context, l.message),
       (r) => Navigator.pop(context),
+    );
+  }
+
+  void followUser({
+    required UserModel userToFollow,
+    required UserModel currentUser,
+    required BuildContext context,
+  }) async {
+    if (currentUser.following.contains(userToFollow.uid)) {
+      currentUser.following.remove(userToFollow.uid);
+      userToFollow.followers.remove(currentUser.uid);
+    } else {
+      currentUser.following.add(userToFollow.uid);
+      userToFollow.followers.add(currentUser.uid);
+    }
+
+    userToFollow = userToFollow.copyWith(followers: userToFollow.followers);
+    currentUser = currentUser.copyWith(following: currentUser.following);
+
+    final res = await _userAPI.followUser(userToFollow);
+    res.fold(
+      (l) => showSnackBar(context, l.message),
+      (r) async {
+        final res2 = await _userAPI.addToFollowing(currentUser);
+        res2.fold(
+          (l) => showSnackBar(context, l.message),
+          (r) => null,
+        );
+      },
     );
   }
 }
